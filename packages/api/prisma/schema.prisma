@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core execution log - every tool call creates one record
+model Execution {
+  id              String   @id @default(cuid())
+  agentId         String
+  tool            String
+  input           Json
+  output          Json?
+  status          ExecutionStatus
+  parentId        String?
+  parent          Execution?  @relation("ExecutionTree", fields: [parentId], references: [id])
+  children        Execution[] @relation("ExecutionTree")
+  previousState   Json?       // Captured before execution for rollback capability
+  riskScore       Float?
+  detectionFlags  Json?       // Full detection result including layer outputs
+  startedAt       DateTime
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+
+  // Relations
+  approvalRequest  ApprovalRequest?
+  compensations    Compensation[]
+  targetedRollback Rollback?
+
+  @@index([agentId])
+  @@index([tool])
+  @@index([status])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+enum ExecutionStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  BLOCKED
+  AWAITING_APPROVAL
+  ROLLED_BACK
+}
+
+// Circuit breakers for emergency stops
+model Breaker {
+  id        String        @id @default(cuid())
+  scope     BreakerScope
+  target    String?       // agentId for AGENT scope, tool name for TOOL scope, null for GLOBAL
+  status    BreakerStatus
+  reason    String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([scope, target])
+}
+
+enum BreakerScope {
+  GLOBAL
+  AGENT
+  TOOL
+}
+
+enum BreakerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// Approval policies - define when human review is required
+model Policy {
+  id        String       @id @default(cuid())
+  name      String
+  tool      String
+  condition String?      // Optional filter like "args.to CONTAINS '@customer.com'"
+  action    PolicyAction
+  enabled   Boolean      @default(true)
+  priority  Int          @default(0) // Lower number = higher priority
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([tool])
+  @@index([enabled])
+  @@index([priority])
+}
+
+enum PolicyAction {
+  ALLOW
+  DENY
+  REQUIRE_APPROVAL
+}
+
+// Pending approval requests
+model ApprovalRequest {
+  id            String              @id @default(cuid())
+  executionId   String              @unique
+  execution     Execution           @relation(fields: [executionId], references: [id])
+  status        ApprovalStatus
+  riskScore     Float
+  riskBreakdown Json                // Detailed breakdown of risk components
+  detectionFlags Json               // Detection layer outputs
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  decision      String?             // APPROVED or DENIED
+  comments      String?
+  createdAt     DateTime            @default(now())
+  expiresAt     DateTime
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  DENIED
+  EXPIRED
+}
+
+// Rollback operations
+model Rollback {
+  id                String         @id @default(cuid())
+  targetExecutionId String         @unique
+  targetExecution   Execution      @relation(fields: [targetExecutionId], references: [id])
+  status            RollbackStatus
+  affectedCount     Int            @default(0)
+  generatedCount    Int            @default(0)
+  executedCount     Int            @default(0)
+  failedCount       Int            @default(0)
+  initiatedBy       String
+  completedAt       DateTime?
+  createdAt         DateTime       @default(now())
+
+  // Relations
+  compensations     Compensation[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum RollbackStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// Individual compensation actions within a rollback
+model Compensation {
+  id          String           @id @default(cuid())
+  rollbackId  String
+  rollback    Rollback         @relation(fields: [rollbackId], references: [id])
+  executionId String
+  execution   Execution        @relation(fields: [executionId], references: [id])
+  type        CompensationType
+  tool        String
+  input       Json
+  output      Json?
+  description String
+  riskLevel   String           // LOW, MEDIUM, HIGH
+  status      CompensationStatus
+  error       String?
+  executedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([rollbackId])
+  @@index([status])
+}
+
+enum CompensationType {
+  AUTO_REVERSE
+  SUGGESTED
+  MANUAL_REQUIRED
+  NOT_REVERSIBLE
+  NO_ACTION_NEEDED
+}
+
+enum CompensationStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+// Detection rules - Layer 1 of detection system
+model Rule {
+  id        String       @id @default(cuid())
+  name      String
+  type      RuleType
+  config    Json         // Rule-specific configuration
+  severity  RuleSeverity
+  enabled   Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([enabled])
+  @@index([type])
+}
+
+enum RuleType {
+  RATE_LIMIT
+  VALUE_THRESHOLD
+  PATTERN_MATCH
+  TIME_RESTRICTION
+  PROTECTED_RESOURCE
+}
+
+enum RuleSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+// Statistical baselines for anomaly detection - Layer 2
+model AnomalyBaseline {
+  id                     String   @id @default(cuid())
+  agentId                String
+  tool                   String
+  dailyCountsMean        Float
+  dailyCountsStdDev      Float
+  activeHours            Json     // Histogram of hour-of-day activity
+  commonTargets          Json     // Top recipients/resources with percentages
+  transitionProbabilities Json    // Markov chain for tool sequences
+  lastUpdated            DateTime
+  createdAt              DateTime @default(now())
+
+  @@unique([agentId, tool])
+  @@index([lastUpdated])
+}

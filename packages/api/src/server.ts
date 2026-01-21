@@ -5,6 +5,8 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { authenticate } from './middleware/auth';
+import { initializeStrategies } from './strategies/registry';
+import { setIO } from './socket';
 
 // Import routes
 import proxyRoutes from './routes/proxy';
@@ -18,6 +20,9 @@ import analyticsRoutes from './routes/analytics';
 // Load environment variables
 dotenv.config();
 
+// Initialize compensation strategies
+initializeStrategies();
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -26,6 +31,9 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
   }
 });
+
+// Make io available globally
+setIO(io);
 
 const PORT = process.env.PORT || 3001;
 

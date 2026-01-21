@@ -167,10 +167,103 @@ export class RelayClient {
   }
 
   /**
+   * Execute and automatically wait for approval if required
+   * Convenience method that combines execute() and waitForApproval()
+   */
+  async executeAndWait(
+    tool: string,
+    input: any,
+    options: ExecutionOptions & WaitForApprovalOptions = {}
+  ): Promise<ExecutionResult> {
+    try {
+      const result = await this.execute(tool, input, options);
+      return result;
+    } catch (error) {
+      if (error instanceof ApprovalRequiredError) {
+        // Automatically wait for approval
+        return await this.waitForApproval(error.executionId, {
+          pollInterval: options.pollInterval,
+          timeout: options.timeout,
+          onStatusChange: options.onStatusChange,
+        });
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get the last execution ID (useful for manual chaining)
+   */
+  getLastExecutionId(): string | undefined {
+    return this.lastExecutionId;
+  }
+
+  /**
+   * Set a custom parent ID for the next execution
+   */
+  setParentId(executionId: string): void {
+    this.lastExecutionId = executionId;
+  }
+
+  /**
    * Reset the auto-chaining execution ID
    */
   resetChain(): void {
     this.lastExecutionId = undefined;
+  }
+
+  /**
+   * Get execution details
+   */
+  async getExecution(executionId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/executions/${executionId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new ExecutionFailedError(
+        `Failed to get execution: ${error.message}`,
+        executionId
+      );
+    }
+  }
+
+  /**
+   * Get execution history for this agent
+   */
+  async getExecutionHistory(limit: number = 10): Promise<any[]> {
+    try {
+      const response = await this.client.get(`/api/executions`, {
+        params: {
+          agentId: this.config.agentId,
+          limit,
+        },
+      });
+      return response.data.executions;
+    } catch (error: any) {
+      throw new Error(`Failed to get execution history: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a circuit breaker is active for a specific scope
+   */
+  async checkBreaker(scope: 'GLOBAL' | 'AGENT' | 'TOOL', target?: string): Promise<boolean> {
+    try {
+      const response = await this.client.get('/api/breakers');
+      const breakers = response.data.breakers;
+
+      return breakers.some((b: any) => {
+        if (b.status !== 'ACTIVE') return false;
+        if (b.scope !== scope) return false;
+
+        if (scope === 'AGENT' && b.agentId !== this.config.agentId) return false;
+        if (scope === 'TOOL' && b.tool !== target) return false;
+
+        return true;
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to check breakers: ${error.message}`);
+    }
   }
 
   private sleep(ms: number): Promise<void> {

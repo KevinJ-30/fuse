@@ -29,6 +29,7 @@ export interface ExecutionResult {
 export interface WaitForApprovalOptions {
   pollInterval?: number;
   timeout?: number;
+  onStatusChange?: (status: string) => void;
 }
 
 export class BreakerError extends Error {

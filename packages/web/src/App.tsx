@@ -12,11 +12,11 @@ import RollbackDetail from './pages/RollbackDetail';
 function App() {
   return (
     <Router>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-dark-50">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-dark-50 p-6">
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />

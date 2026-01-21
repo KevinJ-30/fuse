@@ -98,49 +98,49 @@ export default function EmergencyStops() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-semibold">Emergency Stop Breakers</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <h3 className="text-lg font-semibold text-gray-100">Emergency Stop Breakers</h3>
+          <p className="text-sm text-gray-400 mt-1">
             Circuit breakers for instantly blocking tool calls
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
         >
           Create Breaker
         </button>
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        <div className="bg-dark-100 rounded-lg shadow p-8 text-center text-gray-400">
           Loading breakers...
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-dark-100 rounded-lg shadow overflow-hidden border border-gray-800">
+          <table className="min-w-full divide-y divide-gray-800">
+            <thead className="bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Scope
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Target
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Reason
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-dark-100 divide-y divide-gray-800">
               {breakers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
                     No breakers configured
                   </td>
                 </tr>
@@ -151,30 +151,30 @@ export default function EmergencyStops() {
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded ${
                           breaker.scope === 'GLOBAL'
-                            ? 'bg-red-100 text-red-800'
+                            ? 'bg-primary-900/30 text-primary-400 border border-primary-600'
                             : breaker.scope === 'AGENT'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-gray-800 text-gray-300 border border-gray-700'
+                            : 'bg-gray-800 text-gray-400 border border-gray-700'
                         }`}
                       >
                         {breaker.scope}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
                       {breaker.target || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded ${
                           breaker.status === 'ACTIVE'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-primary-900/30 text-primary-400 border border-primary-600'
+                            : 'bg-gray-800 text-gray-400 border border-gray-700'
                         }`}
                       >
                         {breaker.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-gray-100">
                       {breaker.reason}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -182,15 +182,15 @@ export default function EmergencyStops() {
                         onClick={() => handleToggle(breaker.id, breaker.status)}
                         className={`${
                           breaker.status === 'ACTIVE'
-                            ? 'text-gray-600 hover:text-gray-900'
-                            : 'text-green-600 hover:text-green-900'
+                            ? 'text-gray-400 hover:text-gray-200'
+                            : 'text-primary-500 hover:text-primary-400'
                         }`}
                       >
                         {breaker.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
                         onClick={() => handleDelete(breaker.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-primary-500 hover:text-primary-400"
                       >
                         Delete
                       </button>
@@ -206,12 +206,12 @@ export default function EmergencyStops() {
       {/* Create Breaker Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Create Breaker</h3>
+          <div className="bg-dark-100 rounded-lg p-6 w-full max-w-md border border-gray-800">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">Create Breaker</h3>
             <form onSubmit={handleCreate}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Scope
                   </label>
                   <select
@@ -223,7 +223,7 @@ export default function EmergencyStops() {
                         target: '',
                       })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                   >
                     <option value="TOOL">Tool (block specific tool)</option>
                     <option value="AGENT">Agent (block specific agent)</option>
@@ -233,7 +233,7 @@ export default function EmergencyStops() {
 
                 {formData.scope !== 'GLOBAL' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Target ({formData.scope === 'AGENT' ? 'Agent ID' : 'Tool Name'})
                     </label>
                     <input
@@ -242,7 +242,7 @@ export default function EmergencyStops() {
                       onChange={(e) =>
                         setFormData({ ...formData, target: e.target.value })
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                       placeholder={
                         formData.scope === 'AGENT' ? 'e.g., sales_bot' : 'e.g., send_email'
                       }
@@ -252,7 +252,7 @@ export default function EmergencyStops() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Reason
                   </label>
                   <textarea
@@ -260,7 +260,7 @@ export default function EmergencyStops() {
                     onChange={(e) =>
                       setFormData({ ...formData, reason: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                     rows={3}
                     placeholder="Why are you creating this breaker?"
                     required
@@ -272,13 +272,13 @@ export default function EmergencyStops() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   Create
                 </button>

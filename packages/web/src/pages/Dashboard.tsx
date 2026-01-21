@@ -68,7 +68,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading dashboard...</div>
+        <div className="text-gray-400">Loading dashboard...</div>
       </div>
     );
   }
@@ -84,11 +84,11 @@ export default function Dashboard() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
+        <h2 className="text-2xl font-bold text-white">Dashboard</h2>
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2"
+          className="bg-gray-900 border border-gray-800 text-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500"
         >
           <option value="24h">Last 24 Hours</option>
           <option value="7d">Last 7 Days</option>
@@ -98,81 +98,73 @@ export default function Dashboard() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Executions" value={stats.executions.total.toString()} color="blue" />
+        <StatCard title="Executions" value={stats.executions.total.toString()} />
         <StatCard
           title="Approval Rate"
           value={stats.approvals.rate > 0 ? `${stats.approvals.rate}%` : 'N/A'}
-          color="green"
         />
-        <StatCard title="Active Breakers" value={stats.activeBreakers.toString()} color="red" />
-        <StatCard title="Recent Rollbacks" value={stats.rollbacks.toString()} color="yellow" />
+        <StatCard title="Active Breakers" value={stats.activeBreakers.toString()} highlight />
+        <StatCard title="Recent Rollbacks" value={stats.rollbacks.toString()} />
       </div>
 
       {/* Detection Stats */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Detection Layer Statistics</h3>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-white">Detection Layer Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <DetectionStat
             label="Rule Violations"
             value={stats.detection.ruleViolations}
-            color="orange"
           />
-          <DetectionStat label="Anomalies Detected" value={stats.detection.anomalies} color="purple" />
+          <DetectionStat label="Anomalies Detected" value={stats.detection.anomalies} />
           <DetectionStat
             label="Semantic Concerns"
             value={stats.detection.semanticConcerns}
-            color="red"
           />
           <DetectionStat
             label="Detection Rate"
             value={`${stats.detection.detectionRate}%`}
-            color="blue"
           />
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-800">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Average Risk Score:</span>
+            <span className="text-sm font-medium text-gray-400">Average Risk Score:</span>
             <RiskBadge score={stats.avgRiskScore} />
           </div>
         </div>
       </div>
 
       {/* Risk Distribution */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Risk Score Distribution</h3>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-white">Risk Score Distribution</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <RiskDistributionCard
             label="Low"
             count={stats.riskDistribution.low}
-            color="bg-green-100 text-green-800"
           />
           <RiskDistributionCard
             label="Medium"
             count={stats.riskDistribution.medium}
-            color="bg-yellow-100 text-yellow-800"
           />
           <RiskDistributionCard
             label="High"
             count={stats.riskDistribution.high}
-            color="bg-orange-100 text-orange-800"
           />
           <RiskDistributionCard
             label="Critical"
             count={stats.riskDistribution.critical}
-            color="bg-red-100 text-red-800"
           />
         </div>
       </div>
 
       {/* Top Agents and Tools */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Agents</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4 text-white">Top Agents</h3>
           {stats.topAgents.length > 0 ? (
             <div className="space-y-2">
               {stats.topAgents.map((agent) => (
                 <div key={agent.agentId} className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">{agent.agentId}</span>
+                  <span className="text-sm font-medium text-gray-300">{agent.agentId}</span>
                   <span className="text-sm text-gray-500">{agent.count} executions</span>
                 </div>
               ))}
@@ -182,13 +174,13 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Tools</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4 text-white">Top Tools</h3>
           {stats.topTools.length > 0 ? (
             <div className="space-y-2">
               {stats.topTools.map((tool) => (
                 <div key={tool.tool} className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">{tool.tool}</span>
+                  <span className="text-sm font-medium text-gray-300">{tool.tool}</span>
                   <span className="text-sm text-gray-500">{tool.count} executions</span>
                 </div>
               ))}
@@ -202,18 +194,11 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ title, value, color }: { title: string; value: string; color: string }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    red: 'bg-red-50 text-red-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-  };
-
+function StatCard({ title, value, highlight }: { title: string; value: string; highlight?: boolean }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-sm font-medium text-gray-500 mb-2">{title}</h3>
-      <p className={`text-3xl font-bold ${colorClasses[color as keyof typeof colorClasses]}`}>
+    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+      <h3 className="text-sm font-medium text-gray-400 mb-2">{title}</h3>
+      <p className={`text-3xl font-bold ${highlight ? 'text-red-500' : 'text-white'}`}>
         {value}
       </p>
     </div>
@@ -223,46 +208,37 @@ function StatCard({ title, value, color }: { title: string; value: string; color
 function DetectionStat({
   label,
   value,
-  color,
 }: {
   label: string;
   value: number | string;
-  color: string;
 }) {
-  const colorClasses = {
-    orange: 'text-orange-600',
-    purple: 'text-purple-600',
-    red: 'text-red-600',
-    blue: 'text-blue-600',
-  };
-
   return (
     <div className="text-center">
-      <div className={`text-2xl font-bold ${colorClasses[color as keyof typeof colorClasses]}`}>
+      <div className="text-2xl font-bold text-red-500">
         {value}
       </div>
-      <div className="text-sm text-gray-600 mt-1">{label}</div>
+      <div className="text-sm text-gray-400 mt-1">{label}</div>
     </div>
   );
 }
 
 function RiskBadge({ score }: { score: number }) {
-  let color = 'bg-green-100 text-green-800';
+  let color = 'bg-gray-800 text-gray-300 border-gray-700';
   let label = 'Low';
 
   if (score >= 0.95) {
-    color = 'bg-red-100 text-red-800';
+    color = 'bg-red-950 text-red-400 border-red-800';
     label = 'Critical';
   } else if (score >= 0.6) {
-    color = 'bg-orange-100 text-orange-800';
+    color = 'bg-red-950 text-red-500 border-red-800';
     label = 'High';
   } else if (score >= 0.3) {
-    color = 'bg-yellow-100 text-yellow-800';
+    color = 'bg-gray-800 text-gray-300 border-gray-700';
     label = 'Medium';
   }
 
   return (
-    <span className={`px-3 py-1 text-sm font-medium rounded-full ${color}`}>
+    <span className={`px-3 py-1 text-sm font-medium rounded-full border ${color}`}>
       {score.toFixed(2)} - {label}
     </span>
   );
@@ -271,16 +247,16 @@ function RiskBadge({ score }: { score: number }) {
 function RiskDistributionCard({
   label,
   count,
-  color,
 }: {
   label: string;
   count: number;
-  color: string;
 }) {
+  const isHighRisk = label === 'High' || label === 'Critical';
+
   return (
-    <div className="text-center p-4 bg-gray-50 rounded-lg">
-      <div className={`text-2xl font-bold ${color}`}>{count}</div>
-      <div className="text-sm text-gray-600 mt-1">{label}</div>
+    <div className="text-center p-4 bg-black border border-gray-800 rounded-lg">
+      <div className={`text-2xl font-bold ${isHighRisk ? 'text-red-500' : 'text-gray-300'}`}>{count}</div>
+      <div className="text-sm text-gray-400 mt-1">{label}</div>
     </div>
   );
 }

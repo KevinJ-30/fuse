@@ -279,14 +279,16 @@ VITE_API_KEY=test-key
 
 ## Roadmap
 
-### MVP (Current)
+### MVP (Completed ✅)
 - [x] Proxy architecture
-- [x] Circuit breakers
-- [ ] Rule-based detection
-- [ ] Anomaly detection
-- [ ] Approval workflows
-- [ ] Rollback system
-- [ ] Dashboard UI
+- [x] Circuit breakers (GLOBAL, AGENT, TOOL)
+- [x] Rule-based detection (10 default rules)
+- [x] Anomaly detection
+- [x] Semantic analysis layer
+- [x] Approval workflows with policies
+- [x] Rollback system with compensation strategies
+- [x] Dashboard UI with real-time updates
+- [x] Execution graph & blast radius calculation
 
 ### Post-MVP
 - [ ] Multi-organization support

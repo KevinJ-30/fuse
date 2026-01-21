@@ -129,10 +129,10 @@ export default function ApprovalQueue() {
   };
 
   const getRiskColor = (score: number) => {
-    if (score >= 0.95) return 'bg-red-100 text-red-800 border-red-200';
-    if (score >= 0.6) return 'bg-orange-100 text-orange-800 border-orange-200';
-    if (score >= 0.3) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    return 'bg-green-100 text-green-800 border-green-200';
+    if (score >= 0.95) return 'bg-primary-900/20 text-primary-400 border-primary-600';
+    if (score >= 0.6) return 'bg-primary-900/10 text-primary-500 border-primary-700';
+    if (score >= 0.3) return 'bg-gray-800 text-gray-300 border-gray-700';
+    return 'bg-gray-800 text-gray-400 border-gray-700';
   };
 
   const getRiskLabel = (score: number) => {
@@ -158,18 +158,18 @@ export default function ApprovalQueue() {
   return (
     <div>
       <div className="mb-6">
-        <h3 className="text-lg font-semibold">Pending Approvals</h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <h3 className="text-lg font-semibold text-gray-100">Pending Approvals</h3>
+        <p className="text-sm text-gray-400 mt-1">
           Review and approve or deny tool execution requests
         </p>
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        <div className="bg-dark-100 rounded-lg shadow p-8 text-center text-gray-400">
           Loading approvals...
         </div>
       ) : approvals.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        <div className="bg-dark-100 rounded-lg shadow p-8 text-center text-gray-400">
           No pending approvals
         </div>
       ) : (
@@ -177,23 +177,23 @@ export default function ApprovalQueue() {
           {approvals.map((approval) => (
             <div
               key={approval.id}
-              className={`bg-white rounded-lg shadow border-l-4 ${getRiskColor(approval.riskScore)}`}
+              className={`bg-dark-100 rounded-lg shadow border-l-4 ${getRiskColor(approval.riskScore)}`}
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="text-lg font-semibold text-gray-900">
+                      <h4 className="text-lg font-semibold text-gray-100">
                         {approval.execution.tool}
                       </h4>
-                      <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
+                      <span className="px-2 py-1 text-xs font-medium rounded bg-gray-800 text-gray-300">
                         {approval.execution.agentId}
                       </span>
                       <span className={`px-3 py-1 text-xs font-medium rounded ${getRiskColor(approval.riskScore)}`}>
                         Risk: {approval.riskScore.toFixed(2)} ({getRiskLabel(approval.riskScore)})
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-400">
                       Waiting {getTimeWaiting(approval.createdAt)} • Expires{' '}
                       {new Date(approval.expiresAt).toLocaleString()}
                     </p>
@@ -201,19 +201,19 @@ export default function ApprovalQueue() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => openApproveModal(approval)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
+                      className="px-4 py-2 bg-gray-700 text-gray-100 text-sm rounded-lg hover:bg-gray-600"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => openEditApproveModal(approval)}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                      className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
                     >
                       Edit & Approve
                     </button>
                     <button
                       onClick={() => openDenyModal(approval)}
-                      className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+                      className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
                     >
                       Deny
                     </button>
@@ -222,23 +222,23 @@ export default function ApprovalQueue() {
 
                 {/* Detection Flags */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-center p-3 bg-gray-800 rounded border border-gray-700">
+                    <div className="text-2xl font-bold text-primary-500">
                       {approval.riskBreakdown.rules}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">Rule Violations</div>
+                    <div className="text-xs text-gray-400 mt-1">Rule Violations</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-center p-3 bg-gray-800 rounded border border-gray-700">
+                    <div className="text-2xl font-bold text-primary-500">
                       {approval.riskBreakdown.anomalies}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">Anomalies</div>
+                    <div className="text-xs text-gray-400 mt-1">Anomalies</div>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 rounded">
-                    <div className={`text-2xl font-bold ${approval.riskBreakdown.semantic ? 'text-red-600' : 'text-gray-400'}`}>
+                  <div className="text-center p-3 bg-gray-800 rounded border border-gray-700">
+                    <div className={`text-2xl font-bold ${approval.riskBreakdown.semantic ? 'text-primary-400' : 'text-gray-500'}`}>
                       {approval.riskBreakdown.semantic ? 'Yes' : 'No'}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">Semantic Concerns</div>
+                    <div className="text-xs text-gray-400 mt-1">Semantic Concerns</div>
                   </div>
                 </div>
 
@@ -246,15 +246,15 @@ export default function ApprovalQueue() {
                 <div className="mb-4">
                   <button
                     onClick={() => setExpandedId(expandedId === approval.id ? null : approval.id)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                    className="text-sm font-medium text-primary-500 hover:text-primary-400"
                   >
                     {expandedId === approval.id ? 'Hide' : 'Show'} Input Arguments
                   </button>
                 </div>
 
                 {expandedId === approval.id && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
-                    <pre className="text-xs overflow-x-auto">
+                  <div className="mt-4 p-4 bg-gray-900 rounded border border-gray-700">
+                    <pre className="text-xs overflow-x-auto text-gray-300">
                       {JSON.stringify(approval.execution.input, null, 2)}
                     </pre>
                   </div>
@@ -262,12 +262,12 @@ export default function ApprovalQueue() {
 
                 {/* Detection Details */}
                 {approval.detectionFlags && expandedId === approval.id && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
-                    <h5 className="text-sm font-semibold mb-2">Detection Details</h5>
+                  <div className="mt-4 p-4 bg-gray-900 rounded border border-gray-700">
+                    <h5 className="text-sm font-semibold mb-2 text-gray-100">Detection Details</h5>
                     {approval.detectionFlags.rules && approval.detectionFlags.rules.length > 0 && (
                       <div className="mb-2">
-                        <p className="text-xs font-medium text-gray-700">Rule Violations:</p>
-                        <ul className="text-xs text-gray-600 ml-4 list-disc">
+                        <p className="text-xs font-medium text-gray-300">Rule Violations:</p>
+                        <ul className="text-xs text-gray-400 ml-4 list-disc">
                           {approval.detectionFlags.rules.map((rule: any, idx: number) => (
                             <li key={idx}>{rule.ruleName}: {rule.message}</li>
                           ))}
@@ -276,8 +276,8 @@ export default function ApprovalQueue() {
                     )}
                     {approval.detectionFlags.anomalies && approval.detectionFlags.anomalies.length > 0 && (
                       <div>
-                        <p className="text-xs font-medium text-gray-700">Anomalies:</p>
-                        <ul className="text-xs text-gray-600 ml-4 list-disc">
+                        <p className="text-xs font-medium text-gray-300">Anomalies:</p>
+                        <ul className="text-xs text-gray-400 ml-4 list-disc">
                           {approval.detectionFlags.anomalies.map((anomaly: any, idx: number) => (
                             <li key={idx}>{anomaly.type}: {anomaly.message} (z-score: {anomaly.zScore.toFixed(2)})</li>
                           ))}
@@ -295,56 +295,56 @@ export default function ApprovalQueue() {
       {/* Approve Modal */}
       {showApproveModal && selectedApproval && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Approve Execution</h3>
+          <div className="bg-dark-100 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-800">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">Approve Execution</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600 mb-2">
-                  Tool: <strong>{selectedApproval.execution.tool}</strong>
+                <p className="text-sm text-gray-400 mb-2">
+                  Tool: <strong className="text-gray-100">{selectedApproval.execution.tool}</strong>
                 </p>
-                <p className="text-sm text-gray-600 mb-2">
-                  Agent: <strong>{selectedApproval.execution.agentId}</strong>
+                <p className="text-sm text-gray-400 mb-2">
+                  Agent: <strong className="text-gray-100">{selectedApproval.execution.agentId}</strong>
                 </p>
-                <p className="text-sm text-gray-600">
-                  Risk Score: <strong>{selectedApproval.riskScore.toFixed(2)}</strong>
+                <p className="text-sm text-gray-400">
+                  Risk Score: <strong className="text-gray-100">{selectedApproval.riskScore.toFixed(2)}</strong>
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Reviewer Name
                 </label>
                 <input
                   type="text"
                   value={reviewerName}
                   onChange={(e) => setReviewerName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                   placeholder="Your name or email"
                 />
               </div>
 
               {modifiedInput && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Modified Input (JSON)
                   </label>
                   <textarea
                     value={modifiedInput}
                     onChange={(e) => setModifiedInput(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-sm"
+                    className="w-full border border-gray-700 rounded-lg px-3 py-2 font-mono text-sm bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                     rows={10}
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Comments (optional)
                 </label>
                 <textarea
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                   rows={3}
                   placeholder="Reason for approval..."
                 />
@@ -354,13 +354,13 @@ export default function ApprovalQueue() {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowApproveModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApprove}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
                 Confirm Approval
               </button>
@@ -372,39 +372,39 @@ export default function ApprovalQueue() {
       {/* Deny Modal */}
       {showDenyModal && selectedApproval && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-            <h3 className="text-lg font-semibold mb-4">Deny Execution</h3>
+          <div className="bg-dark-100 rounded-lg p-6 w-full max-w-lg border border-gray-800">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">Deny Execution</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600 mb-2">
-                  Tool: <strong>{selectedApproval.execution.tool}</strong>
+                <p className="text-sm text-gray-400 mb-2">
+                  Tool: <strong className="text-gray-100">{selectedApproval.execution.tool}</strong>
                 </p>
-                <p className="text-sm text-gray-600">
-                  Agent: <strong>{selectedApproval.execution.agentId}</strong>
+                <p className="text-sm text-gray-400">
+                  Agent: <strong className="text-gray-100">{selectedApproval.execution.agentId}</strong>
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Reviewer Name
                 </label>
                 <input
                   type="text"
                   value={reviewerName}
                   onChange={(e) => setReviewerName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                   placeholder="Your name or email"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Reason for Denial
                 </label>
                 <textarea
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-gray-100 focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
                   rows={3}
                   placeholder="Why are you denying this request?"
                   required
@@ -415,13 +415,13 @@ export default function ApprovalQueue() {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowDenyModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeny}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
                 Confirm Denial
               </button>

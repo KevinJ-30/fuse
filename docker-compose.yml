@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: relay-postgres
+    container_name: relay-fuse-postgres-2026
     restart: unless-stopped
     ports:
       - '5432:5432'
@@ -12,7 +10,7 @@ services:
       POSTGRES_PASSWORD: relay
       POSTGRES_DB: relay
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - relay_fuse_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U relay']
       interval: 10s
@@ -21,12 +19,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: relay-redis
+    container_name: relay-fuse-redis-2026
     restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
-      - redis_data:/data
+      - relay_fuse_redis_data:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
@@ -34,5 +32,5 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
-  redis_data:
+  relay_fuse_postgres_data:
+  relay_fuse_redis_data:

@@ -1,0 +1,58 @@
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--r-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.table-header-cell {
+  padding: var(--s-4);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(234, 240, 255, 0.02);
+}
+
+.table-body {
+}
+
+.table-row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row-clickable {
+  cursor: pointer;
+}
+
+.table-row-clickable:hover {
+  background: rgba(234, 240, 255, 0.04);
+}
+
+.table-cell {
+  padding: var(--s-4);
+  font-size: 14px;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.table-empty {
+  padding: var(--s-8) var(--s-6);
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}

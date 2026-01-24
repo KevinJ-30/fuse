@@ -1,31 +1,31 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Sidebar from './components/layout/Sidebar';
-import Header from './components/layout/Header';
-import Dashboard from './pages/Dashboard';
-import ExecutionGraph from './pages/ExecutionGraph';
-import EmergencyStops from './pages/EmergencyStops';
-import Policies from './pages/Policies';
-import ApprovalQueue from './pages/ApprovalQueue';
-import Rollbacks from './pages/Rollbacks';
-import RollbackDetail from './pages/RollbackDetail';
+import SidebarNew from './components/layout/SidebarNew';
+import HeaderNew from './components/layout/HeaderNew';
+import DashboardNew from './pages/DashboardNew';
+import ExecutionGraphNew from './pages/ExecutionGraphNew';
+import EmergencyStopsNew from './pages/EmergencyStopsNew';
+import PoliciesNew from './pages/PoliciesNew';
+import ApprovalQueueNew from './pages/ApprovalQueueNew';
+import RollbacksNew from './pages/RollbacksNew';
+import RollbackDetailNew from './pages/RollbackDetailNew';
 
 function App() {
   return (
     <Router>
-      <div className="flex h-screen bg-dark-50">
-        <Sidebar />
+      <div className="flex h-screen" style={{ background: 'var(--bg)' }}>
+        <SidebarNew />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-dark-50 p-6">
+          <HeaderNew />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto" style={{ background: 'var(--bg)' }}>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/executions" element={<ExecutionGraph />} />
-              <Route path="/breakers" element={<EmergencyStops />} />
-              <Route path="/policies" element={<Policies />} />
-              <Route path="/approvals" element={<ApprovalQueue />} />
-              <Route path="/rollbacks" element={<Rollbacks />} />
-              <Route path="/rollbacks/:id" element={<RollbackDetail />} />
+              <Route path="/dashboard" element={<DashboardNew />} />
+              <Route path="/executions" element={<ExecutionGraphNew />} />
+              <Route path="/breakers" element={<EmergencyStopsNew />} />
+              <Route path="/policies" element={<PoliciesNew />} />
+              <Route path="/approvals" element={<ApprovalQueueNew />} />
+              <Route path="/rollbacks" element={<RollbacksNew />} />
+              <Route path="/rollbacks/:id" element={<RollbackDetailNew />} />
             </Routes>
           </main>
         </div>

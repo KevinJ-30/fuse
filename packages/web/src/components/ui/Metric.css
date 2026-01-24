@@ -1,0 +1,102 @@
+.metric {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  background: rgba(234, 240, 255, 0.05);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.metric-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--s-2);
+  text-transform: uppercase;
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-1);
+}
+
+.metric-value {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  transition: transform 0.3s ease;
+}
+
+.metric-sm .metric-value {
+  font-size: 24px;
+}
+
+.metric-lg .metric-value {
+  font-size: 48px;
+}
+
+.metric-suffix {
+  font-size: 0.5em;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.metric-delta {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-delta-up {
+  background: rgba(54, 211, 153, 0.15);
+  color: var(--ok);
+}
+
+.metric-delta-down {
+  background: rgba(255, 77, 109, 0.15);
+  color: var(--danger);
+}
+
+.metric-delta-neutral {
+  background: rgba(234, 240, 255, 0.1);
+  color: var(--muted);
+}
+
+.metric-description {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: var(--s-2);
+}
+
+.metric-danger .metric-value {
+  color: var(--danger);
+}
+
+.metric-success .metric-value {
+  color: var(--ok);
+}

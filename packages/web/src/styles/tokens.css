@@ -1,0 +1,161 @@
+/* Design Tokens - Relay Dashboard */
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Roboto+Condensed:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Colors - Base */
+  --bg: #070A12;
+  --surface: #0B1020;
+  --surface-2: #0E1730;
+  --text: #EAF0FF;
+  --muted: rgba(234, 240, 255, 0.62);
+
+  /* Colors - Brand */
+  --brand: #DC2626;
+  --brand-glow: rgba(220, 38, 38, 0.22);
+  --brand-2: #EF4444;
+  --danger: #FF4D6D;
+  --ok: #36D399;
+  --warn: #FBBF24;
+
+  /* Colors - Semantic */
+  --border: rgba(234, 240, 255, 0.08);
+  --border-hover: rgba(220, 38, 38, 0.22);
+
+  /* Effects */
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.35);
+
+  /* Radii */
+  --r-lg: 22px;
+  --r-md: 12px;
+  --r-sm: 8px;
+  --r-pill: 999px;
+
+  /* Spacing Scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Typography */
+  --font-heading: 'Arimo', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Roboto Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Utilities */
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.heading-lg {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.heading-md {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.heading-sm {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-family: var(--font-heading);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.metric-value-sm {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.body-sm {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Animation Utilities */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-in {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ExecutionStatus } from '@prisma/client';
 import proxyService from '../services/proxy.service';
+import executionGraphService from '../services/execution-graph.service';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -20,29 +21,6 @@ router.get('/', async (req: Request, res: Response) => {
     res.json({ executions });
   } catch (error: any) {
     logger.error({ error: error.message }, 'Error listing executions');
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
-  }
-});
-
-// GET /api/executions/:id - Get execution details
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const execution = await proxyService.getExecution(id);
-
-    if (!execution) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Execution not found',
-      });
-    }
-
-    res.json(execution);
-  } catch (error: any) {
-    logger.error({ error: error.message, id: req.params.id }, 'Error getting execution');
     res.status(500).json({
       status: 'error',
       message: error.message,
@@ -73,9 +51,50 @@ router.get('/stats/:timeRange', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/executions/:id/tree - Get execution tree (placeholder for Phase 5)
+// GET /api/executions/:id/tree - Get execution tree
 router.get('/:id/tree', async (req: Request, res: Response) => {
-  res.status(501).json({ status: 'error', message: 'Not implemented - coming in Phase 5' });
+  try {
+    const { id } = req.params;
+    const tree = await executionGraphService.getExecutionTree(id);
+
+    if (!tree) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Execution not found',
+      });
+    }
+
+    res.json({ execution: tree });
+  } catch (error: any) {
+    logger.error({ error: error.message, id: req.params.id }, 'Error getting execution tree');
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+});
+
+// GET /api/executions/:id - Get execution details
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const execution = await proxyService.getExecution(id);
+
+    if (!execution) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Execution not found',
+      });
+    }
+
+    res.json(execution);
+  } catch (error: any) {
+    logger.error({ error: error.message, id: req.params.id }, 'Error getting execution');
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
 });
 
 export default router;

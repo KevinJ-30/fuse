@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import apiClient from '../lib/api';
 import { getSocket } from '../lib/socket';
+import { useNotifications } from '../hooks/useNotifications';
 import { Panel } from '../components/ui/Panel';
 import { Metric } from '../components/ui/Metric';
 import { RankedList } from '../components/ui/RankedList';
@@ -45,22 +47,162 @@ export default function DashboardNew() {
   const [timeRange, setTimeRange] = useState('24h');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
+  const {
+    requestPermission,
+    notifyApprovalRequired,
+    notifyExecutionBlocked,
+    notifyBreakerActivated,
+    notifyApprovalResolved,
+    updatePendingCount,
+  } = useNotifications({ enableAudio: true });
+
   useEffect(() => {
     loadStats();
 
     const socket = getSocket();
-    socket.on('execution:new', loadStats);
-    socket.on('execution:updated', loadStats);
-    socket.on('breaker:created', loadStats);
-    socket.on('breaker:toggled', loadStats);
+
+    // Stats refresh
+    socket.on('execution:new', handleExecutionNew);
+    socket.on('execution:completed', handleExecutionCompleted);
+    socket.on('execution:blocked', handleExecutionBlocked);
+    socket.on('execution:failed', handleExecutionFailed);
+    socket.on('approval:new', handleApprovalNew);
+    socket.on('approval:resolved', handleApprovalResolved);
+    socket.on('breaker:created', handleBreakerCreated);
+    socket.on('breaker:toggled', handleBreakerToggled);
+    socket.on('policy:created', handlePolicyCreated);
+    socket.on('policy:updated', handlePolicyUpdated);
 
     return () => {
-      socket.off('execution:new');
-      socket.off('execution:updated');
-      socket.off('breaker:created');
-      socket.off('breaker:toggled');
+      socket.off('execution:new', handleExecutionNew);
+      socket.off('execution:completed', handleExecutionCompleted);
+      socket.off('execution:blocked', handleExecutionBlocked);
+      socket.off('execution:failed', handleExecutionFailed);
+      socket.off('approval:new', handleApprovalNew);
+      socket.off('approval:resolved', handleApprovalResolved);
+      socket.off('breaker:created', handleBreakerCreated);
+      socket.off('breaker:toggled', handleBreakerToggled);
+      socket.off('policy:created', handlePolicyCreated);
+      socket.off('policy:updated', handlePolicyUpdated);
     };
   }, [timeRange]);
+
+  const handleExecutionNew = (data: any) => {
+    toast.info('Execution Started', {
+      description: `${data.agentId} → ${data.tool}`,
+    });
+    loadStats();
+  };
+
+  const handleExecutionCompleted = (data: any) => {
+    toast.success('Execution Completed', {
+      description: `${data.agentId} → ${data.tool}`,
+    });
+    loadStats();
+  };
+
+  const handleExecutionBlocked = (data: any) => {
+    toast.error('Execution Blocked', {
+      description: `${data.agentId} → ${data.tool}: ${data.reason}`,
+      action: {
+        label: 'View',
+        onClick: () => navigate('/executions'),
+      },
+    });
+
+    // Desktop notification
+    notifyExecutionBlocked(data.executionId, data.agentId, data.tool, data.reason);
+    loadStats();
+  };
+
+  const handleExecutionFailed = (data: any) => {
+    toast.error('Execution Failed', {
+      description: `${data.agentId} → ${data.tool}: ${data.error}`,
+    });
+    loadStats();
+  };
+
+  const handleApprovalNew = async (data: any) => {
+    // Request notification permission on first approval
+    await requestPermission();
+
+    toast.warning('Approval Required', {
+      description: `${data.agentId} wants to execute ${data.tool}`,
+      action: {
+        label: 'Review',
+        onClick: () => navigate('/approvals'),
+      },
+      duration: 10000, // Keep longer for approvals
+    });
+
+    // Desktop notification
+    notifyApprovalRequired(data.executionId, data.agentId, data.tool);
+
+    // Update pending count for title badge
+    const response = await apiClient.get('/api/approvals?status=PENDING');
+    const pendingCount = response.data.approvals?.length || 0;
+    updatePendingCount(pendingCount);
+
+    loadStats();
+  };
+
+  const handleApprovalResolved = (data: any) => {
+    toast.success('Approval Resolved', {
+      description: `Execution ${data.decision.toLowerCase()}`,
+    });
+
+    // Desktop notification
+    notifyApprovalResolved(data.decision);
+
+    // Update pending count
+    apiClient.get('/api/approvals?status=PENDING').then((response) => {
+      const pendingCount = response.data.approvals?.length || 0;
+      updatePendingCount(pendingCount);
+    });
+
+    loadStats();
+  };
+
+  const handleBreakerCreated = (data: any) => {
+    toast.error('Emergency Stop Activated', {
+      description: `${data.scope} breaker created`,
+      action: {
+        label: 'View',
+        onClick: () => navigate('/breakers'),
+      },
+    });
+
+    // Desktop notification
+    notifyBreakerActivated(data.scope, data.target || 'all');
+    loadStats();
+  };
+
+  const handleBreakerToggled = (data: any) => {
+    if (data.active) {
+      toast.error('Emergency Stop Activated', {
+        description: `${data.scope} breaker enabled`,
+      });
+    } else {
+      toast.success('Emergency Stop Deactivated', {
+        description: `${data.scope} breaker disabled`,
+      });
+    }
+    loadStats();
+  };
+
+  const handlePolicyCreated = (data: any) => {
+    toast.info('Policy Created', {
+      description: `New policy: ${data.name}`,
+    });
+    loadStats();
+  };
+
+  const handlePolicyUpdated = (data: any) => {
+    toast.info('Policy Updated', {
+      description: `Policy: ${data.name}`,
+    });
+    loadStats();
+  };
 
   const loadStats = async () => {
     try {

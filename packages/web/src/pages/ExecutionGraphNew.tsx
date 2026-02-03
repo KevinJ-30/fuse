@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient from '../lib/api';
 import { Panel } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
@@ -10,14 +10,26 @@ interface Execution {
   id: string;
   agentId: string;
   tool: string;
-  status: 'COMPLETED' | 'AWAITING_APPROVAL' | 'FAILED' | 'BLOCKED' | 'PENDING' | 'EXECUTING';
+  status: string;
   createdAt: string;
+  parentId: string | null;
+  input?: any;
+  output?: any;
+}
+
+interface ExecutionNode extends Execution {
+  children: ExecutionNode[];
 }
 
 export default function ExecutionGraphNew() {
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedTree, setSelectedTree] = useState<ExecutionNode | null>(null);
+  const [showTreeModal, setShowTreeModal] = useState(false);
+  const [showRollbackModal, setShowRollbackModal] = useState(false);
+  const [selectedExecution, setSelectedExecution] = useState<Execution | null>(null);
+  const [blastRadius, setBlastRadius] = useState<any>(null);
+  const [rollbackStrategy, setRollbackStrategy] = useState<'SINGLE' | 'TREE' | 'CHAIN'>('SINGLE');
 
   useEffect(() => {
     loadExecutions();
@@ -25,153 +37,268 @@ export default function ExecutionGraphNew() {
 
   const loadExecutions = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const response = await apiClient.get('/api/executions');
-      setExecutions(response.data.executions || response.data || []);
-    } catch (err) {
-      console.error('Failed to load executions:', err);
-      setError('Failed to load executions. Please try again.');
-      setExecutions([]);
+      setExecutions(response.data.executions || []);
+    } catch (error) {
+      console.error('Error loading executions:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusBadgeVariant = (status: string): 'default' | 'danger' | 'success' | 'warning' | 'brand' => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'success';
-      case 'AWAITING_APPROVAL':
-        return 'warning';
-      case 'FAILED':
-      case 'BLOCKED':
-        return 'danger';
-      default:
-        return 'default';
+  const loadExecutionTree = async (executionId: string) => {
+    try {
+      const response = await apiClient.get(`/api/executions/${executionId}/tree`);
+      setSelectedTree(response.data.execution);
+      setShowTreeModal(true);
+    } catch (error) {
+      console.error('Error loading execution tree:', error);
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const loadRollbackPreview = async (executionId: string, strategy: 'SINGLE' | 'TREE' | 'CHAIN') => {
     try {
-      const date = new Date(timestamp);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMs / 3600000);
-      const diffDays = Math.floor(diffMs / 86400000);
-
-      if (diffMins < 1) {
-        return 'Just now';
-      } else if (diffMins < 60) {
-        return `${diffMins}m ago`;
-      } else if (diffHours < 24) {
-        return `${diffHours}h ago`;
-      } else if (diffDays < 7) {
-        return `${diffDays}d ago`;
-      } else {
-        return date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-        });
-      }
-    } catch {
-      return 'Unknown';
+      const response = await apiClient.post('/api/rollbacks/preview', {
+        executionId,
+        strategy,
+      });
+      setBlastRadius(response.data.blastRadius);
+    } catch (error) {
+      console.error('Error loading rollback preview:', error);
     }
+  };
+
+  const handleRollbackClick = async (execution: Execution) => {
+    setSelectedExecution(execution);
+    setShowRollbackModal(true);
+    await loadRollbackPreview(execution.id, 'SINGLE');
+  };
+
+  const handleStrategyChange = async (strategy: 'SINGLE' | 'TREE' | 'CHAIN') => {
+    setRollbackStrategy(strategy);
+    if (selectedExecution) {
+      await loadRollbackPreview(selectedExecution.id, strategy);
+    }
+  };
+
+  const executeRollback = async () => {
+    if (!selectedExecution) return;
+
+    try {
+      const response = await apiClient.post('/api/rollbacks', {
+        executionId: selectedExecution.id,
+        strategy: rollbackStrategy,
+      });
+      setShowRollbackModal(false);
+      window.location.href = `/rollbacks/${response.data.rollback.id}`;
+    } catch (error) {
+      console.error('Error executing rollback:', error);
+    }
+  };
+
+  const hasChildren = (executionId: string) => {
+    return executions.some(e => e.parentId === executionId);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, any> = {
+      'COMPLETED': 'success',
+      'PENDING': 'warning',
+      'FAILED': 'danger',
+      'RUNNING': 'brand',
+    };
+    return statusMap[status] || 'default';
+  };
+
+  const renderTreeNode = (node: ExecutionNode, depth: number = 0) => {
+    return (
+      <div key={node.id} style={{ marginLeft: `${depth * 24}px` }} className="tree-node">
+        <div className="tree-node-content">
+          <Badge variant="brand" size="sm">{node.agentId}</Badge>
+          <span className="tree-node-tool">{node.tool}</span>
+          <Badge variant={getStatusBadge(node.status) as any} size="sm">{node.status}</Badge>
+        </div>
+        {node.children.map(child => renderTreeNode(child, depth + 1))}
+      </div>
+    );
   };
 
   if (loading) {
     return (
-      <div className="executions-loading">
-        <div className="loading-spinner" />
-        <p>Loading execution history...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="executions-container">
-        <div className="executions-header animate-in">
-          <h1 className="heading heading-lg">Execution History</h1>
-        </div>
-        <Panel className="empty-state animate-in">
-          <div className="empty-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 className="empty-title">Error Loading Executions</h2>
-          <p className="empty-description">{error}</p>
-          <Button variant="primary" onClick={loadExecutions}>
-            Retry
-          </Button>
-        </Panel>
+      <div className="execution-graph-container">
+        <div className="loading-state">Loading executions...</div>
       </div>
     );
   }
 
   return (
-    <div className="executions-container">
-      <div className="executions-header animate-in">
-        <div>
-          <h1 className="heading heading-lg">Execution History</h1>
-          <p className="executions-subtitle">
-            Real-time view of agent tool executions
-          </p>
-        </div>
-        <Button variant="secondary" onClick={loadExecutions}>
-          Refresh
-        </Button>
+    <div className="execution-graph-container">
+      <div className="execution-header animate-in">
+        <h1 className="heading heading-lg">Execution Graph</h1>
+        <p className="execution-subtitle">View execution history and relationships</p>
       </div>
 
       {executions.length === 0 ? (
-        <Panel className="empty-state animate-in">
-          <div className="empty-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
+        <Panel className="animate-in stagger-1">
+          <div className="empty-state">
+            <h3>No executions found</h3>
+            <p>Executions will appear here once agents start running</p>
           </div>
-          <h2 className="empty-title">No Executions Yet</h2>
-          <p className="empty-description">
-            Agent tool executions will appear here as they occur in your system.
-          </p>
         </Panel>
       ) : (
         <div className="executions-list">
           {executions.map((execution, index) => (
             <Panel
               key={execution.id}
-              className={`execution-card animate-in stagger-${Math.min(index + 1, 12)}`}
-              gradient="subtle"
+              className={`execution-card animate-in stagger-${Math.min(index + 1, 6)}`}
             >
-              <div className="execution-content">
-                <div className="execution-header">
-                  <div className="execution-title-section">
-                    <Badge variant="default" size="sm">
-                      {execution.id.slice(0, 8)}
-                    </Badge>
-                    <span className="execution-timestamp">{formatTimestamp(execution.createdAt)}</span>
-                  </div>
-                  <Badge variant={getStatusBadgeVariant(execution.status)}>
-                    {execution.status.replace('_', ' ')}
+              <div className="execution-card-header">
+                <div>
+                  <Badge variant="brand" size="sm">{execution.agentId}</Badge>
+                  <span className="execution-tool">{execution.tool}</span>
+                  <Badge variant={getStatusBadge(execution.status) as any} size="sm">
+                    {execution.status}
                   </Badge>
                 </div>
-
-                <div className="execution-info">
-                  <div className="execution-info-item">
-                    <span className="info-label">Agent</span>
-                    <span className="info-value">{execution.agentId}</span>
-                  </div>
-                  <div className="execution-info-item">
-                    <span className="info-label">Tool</span>
-                    <span className="info-value">{execution.tool}</span>
-                  </div>
+                <div className="execution-indicators">
+                  {execution.parentId && (
+                    <button
+                      className="indicator-button"
+                      onClick={() => loadExecutionTree(execution.parentId!)}
+                      title="View parent"
+                    >
+                      ↑
+                    </button>
+                  )}
+                  {hasChildren(execution.id) && (
+                    <button
+                      className="indicator-button"
+                      onClick={() => loadExecutionTree(execution.id)}
+                      title="View children"
+                    >
+                      ↓
+                    </button>
+                  )}
                 </div>
               </div>
+
+              <div className="execution-details">
+                <div className="detail-section">
+                  <label>Execution ID</label>
+                  <code>{execution.id}</code>
+                </div>
+                <div className="detail-section">
+                  <label>Timestamp</label>
+                  <span>{new Date(execution.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {execution.status === 'COMPLETED' && (
+                <div className="execution-actions">
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleRollbackClick(execution)}
+                  >
+                    Rollback
+                  </Button>
+                </div>
+              )}
             </Panel>
           ))}
+        </div>
+      )}
+
+      {/* Tree View Modal */}
+      {showTreeModal && selectedTree && (
+        <div className="modal-overlay" onClick={() => setShowTreeModal(false)}>
+          <Panel className="modal-panel tree-modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <h2 className="heading heading-md">Execution Tree</h2>
+            <div className="tree-view">
+              {renderTreeNode(selectedTree)}
+            </div>
+            <div className="modal-actions">
+              <Button variant="secondary" onClick={() => setShowTreeModal(false)}>
+                Close
+              </Button>
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {/* Rollback Preview Modal */}
+      {showRollbackModal && selectedExecution && (
+        <div className="modal-overlay" onClick={() => setShowRollbackModal(false)}>
+          <Panel className="modal-panel rollback-modal" gradient="brand" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <h2 className="heading heading-md">Rollback Preview</h2>
+            <p>Review the impact before executing this rollback</p>
+
+            <div className="strategy-selector">
+              <label>Rollback Strategy</label>
+              <div className="strategy-options">
+                <button
+                  className={`strategy-option ${rollbackStrategy === 'SINGLE' ? 'active' : ''}`}
+                  onClick={() => handleStrategyChange('SINGLE')}
+                >
+                  <strong>SINGLE</strong>
+                  <span>Just this execution</span>
+                </button>
+                <button
+                  className={`strategy-option ${rollbackStrategy === 'TREE' ? 'active' : ''}`}
+                  onClick={() => handleStrategyChange('TREE')}
+                >
+                  <strong>TREE</strong>
+                  <span>This + all descendants</span>
+                </button>
+                <button
+                  className={`strategy-option ${rollbackStrategy === 'CHAIN' ? 'active' : ''}`}
+                  onClick={() => handleStrategyChange('CHAIN')}
+                >
+                  <strong>CHAIN</strong>
+                  <span>This + all ancestors</span>
+                </button>
+              </div>
+            </div>
+
+            {blastRadius && (
+              <div className="blast-radius">
+                <h3>Impact Analysis</h3>
+                <div className="blast-stats">
+                  <div className="blast-stat">
+                    <span className="blast-label">Total Affected</span>
+                    <span className="blast-value">{blastRadius.totalExecutions}</span>
+                  </div>
+                  <div className="blast-stat">
+                    <span className="blast-label">Agents</span>
+                    <span className="blast-value">{blastRadius.uniqueAgents}</span>
+                  </div>
+                  <div className="blast-stat">
+                    <span className="blast-label">Tools</span>
+                    <span className="blast-value">{blastRadius.uniqueTools}</span>
+                  </div>
+                </div>
+
+                {blastRadius.warnings && blastRadius.warnings.length > 0 && (
+                  <div className="blast-warnings">
+                    {blastRadius.warnings.map((warning: string, i: number) => (
+                      <div key={i} className="blast-warning">
+                        <Badge variant="danger" size="sm">Warning</Badge>
+                        <span>{warning}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <Button variant="danger" onClick={executeRollback}>
+                Execute Rollback
+              </Button>
+              <Button variant="secondary" onClick={() => setShowRollbackModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </Panel>
         </div>
       )}
     </div>

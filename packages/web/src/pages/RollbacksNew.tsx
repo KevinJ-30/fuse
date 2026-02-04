@@ -41,6 +41,15 @@ interface RollbackStats {
   inProgress: number;
 }
 
+interface RecentExecution {
+  id: string;
+  agentId: string;
+  tool: string;
+  status: string;
+  startedAt: string;
+  riskScore?: number;
+}
+
 export default function RollbacksNew() {
   const navigate = useNavigate();
   const [rollbacks, setRollbacks] = useState<Rollback[]>([]);
@@ -52,6 +61,16 @@ export default function RollbacksNew() {
   });
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('24h');
+
+  // Initiate Rollback Modal State
+  const [showInitiateModal, setShowInitiateModal] = useState(false);
+  const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([]);
+  const [loadingExecutions, setLoadingExecutions] = useState(false);
+  const [selectedExecutionId, setSelectedExecutionId] = useState('');
+  const [manualExecutionId, setManualExecutionId] = useState('');
+  const [rollbackStrategy, setRollbackStrategy] = useState<'SINGLE' | 'CHAIN' | 'TREE'>('SINGLE');
+  const [rollbackReason, setRollbackReason] = useState('');
+  const [initiating, setInitiating] = useState(false);
 
   useEffect(() => {
     loadRollbacks();
@@ -89,6 +108,67 @@ export default function RollbacksNew() {
       inProgress: data.filter(r => r.status === 'IN_PROGRESS').length,
     };
     setStats(stats);
+  };
+
+  const loadRecentExecutions = async () => {
+    try {
+      setLoadingExecutions(true);
+      const response = await apiClient.get('/api/executions?limit=20&status=COMPLETED');
+      setRecentExecutions(response.data.executions || []);
+    } catch (error) {
+      console.error('Failed to load recent executions:', error);
+      setRecentExecutions([]);
+    } finally {
+      setLoadingExecutions(false);
+    }
+  };
+
+  const handleOpenInitiateModal = () => {
+    setShowInitiateModal(true);
+    setSelectedExecutionId('');
+    setManualExecutionId('');
+    setRollbackReason('');
+    setRollbackStrategy('SINGLE');
+    loadRecentExecutions();
+  };
+
+  const handleInitiateRollback = async () => {
+    const executionId = manualExecutionId || selectedExecutionId;
+
+    if (!executionId) {
+      alert('Please select or enter an execution ID');
+      return;
+    }
+
+    if (!rollbackReason.trim()) {
+      alert('Please provide a reason for the rollback');
+      return;
+    }
+
+    try {
+      setInitiating(true);
+      const response = await apiClient.post('/api/rollbacks', {
+        executionId,
+        strategy: rollbackStrategy,
+        reason: rollbackReason,
+      });
+
+      const rollbackId = response.data.rollback?.id || response.data.id;
+
+      // Close modal and refresh list
+      setShowInitiateModal(false);
+      await loadRollbacks();
+
+      // Navigate to rollback detail page
+      if (rollbackId) {
+        navigate(`/rollbacks/${rollbackId}`);
+      }
+    } catch (error: any) {
+      console.error('Failed to initiate rollback:', error);
+      alert(`Failed to initiate rollback: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setInitiating(false);
+    }
   };
 
   const getStatusBadgeVariant = (status: string): 'default' | 'danger' | 'success' | 'warning' | 'brand' => {
@@ -172,9 +252,14 @@ export default function RollbacksNew() {
               Track and manage execution rollbacks across your agent infrastructure
             </p>
           </div>
-          <Button variant="primary" onClick={() => navigate('/executions')}>
-            View Executions
-          </Button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Button variant="primary" onClick={handleOpenInitiateModal}>
+              Initiate Rollback
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/executions')}>
+              View Executions
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -316,6 +401,152 @@ export default function RollbacksNew() {
               </Panel>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Initiate Rollback Modal */}
+      {showInitiateModal && (
+        <div className="modal-overlay" onClick={() => setShowInitiateModal(false)}>
+          <Panel
+            className="modal-content initiate-rollback-modal animate-in"
+            onClick={(e) => e.stopPropagation()}
+            gradient="subtle"
+          >
+            <div className="modal-header">
+              <h2 className="heading heading-md">Initiate Rollback</h2>
+              <button
+                className="modal-close"
+                onClick={() => setShowInitiateModal(false)}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {/* Execution Selection */}
+              <div className="form-section">
+                <label className="label">Select Recent Execution</label>
+                {loadingExecutions ? (
+                  <div className="loading-executions">Loading recent executions...</div>
+                ) : (
+                  <select
+                    className="select-input"
+                    value={selectedExecutionId}
+                    onChange={(e) => {
+                      setSelectedExecutionId(e.target.value);
+                      setManualExecutionId('');
+                    }}
+                    disabled={!!manualExecutionId}
+                  >
+                    <option value="">Select an execution...</option>
+                    {recentExecutions.map((exec) => (
+                      <option key={exec.id} value={exec.id}>
+                        {exec.agentId} → {exec.tool} ({exec.status}) - {new Date(exec.startedAt).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="form-divider">
+                <span className="form-divider-text">OR</span>
+              </div>
+
+              {/* Manual Execution ID */}
+              <div className="form-section">
+                <label className="label">Enter Execution ID</label>
+                <input
+                  type="text"
+                  className="text-input"
+                  placeholder="exec_..."
+                  value={manualExecutionId}
+                  onChange={(e) => {
+                    setManualExecutionId(e.target.value);
+                    setSelectedExecutionId('');
+                  }}
+                  disabled={!!selectedExecutionId}
+                />
+              </div>
+
+              {/* Strategy Selection */}
+              <div className="form-section">
+                <label className="label">Rollback Strategy</label>
+                <div className="strategy-options">
+                  <label className={`strategy-option ${rollbackStrategy === 'SINGLE' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="strategy"
+                      value="SINGLE"
+                      checked={rollbackStrategy === 'SINGLE'}
+                      onChange={(e) => setRollbackStrategy(e.target.value as 'SINGLE')}
+                    />
+                    <div className="strategy-content">
+                      <div className="strategy-title">Single Execution</div>
+                      <div className="strategy-description">Rollback only this execution</div>
+                    </div>
+                  </label>
+
+                  <label className={`strategy-option ${rollbackStrategy === 'CHAIN' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="strategy"
+                      value="CHAIN"
+                      checked={rollbackStrategy === 'CHAIN'}
+                      onChange={(e) => setRollbackStrategy(e.target.value as 'CHAIN')}
+                    />
+                    <div className="strategy-content">
+                      <div className="strategy-title">Execution Chain</div>
+                      <div className="strategy-description">Rollback all child executions</div>
+                    </div>
+                  </label>
+
+                  <label className={`strategy-option ${rollbackStrategy === 'TREE' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="strategy"
+                      value="TREE"
+                      checked={rollbackStrategy === 'TREE'}
+                      onChange={(e) => setRollbackStrategy(e.target.value as 'TREE')}
+                    />
+                    <div className="strategy-content">
+                      <div className="strategy-title">Execution Tree</div>
+                      <div className="strategy-description">Rollback entire execution tree</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="form-section">
+                <label className="label">Reason (required)</label>
+                <textarea
+                  className="textarea-input"
+                  placeholder="Explain why this rollback is necessary..."
+                  rows={3}
+                  value={rollbackReason}
+                  onChange={(e) => setRollbackReason(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <Button
+                variant="secondary"
+                onClick={() => setShowInitiateModal(false)}
+                disabled={initiating}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleInitiateRollback}
+                disabled={initiating || (!selectedExecutionId && !manualExecutionId) || !rollbackReason.trim()}
+              >
+                {initiating ? 'Initiating...' : 'Initiate Rollback'}
+              </Button>
+            </div>
+          </Panel>
         </div>
       )}
     </div>

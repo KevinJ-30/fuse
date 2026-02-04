@@ -61,13 +61,12 @@ export class RollbackService {
       // Create rollback record
       const rollback = await prisma.rollback.create({
         data: {
-          executionId,
+          targetExecutionId: executionId,
           strategy,
           status: 'IN_PROGRESS',
           initiatedBy: reviewedBy,
           reason,
           blastRadius: {},
-          compensations: {},
         },
       });
 
@@ -309,7 +308,7 @@ export class RollbackService {
       const where: any = {};
 
       if (filters?.executionId) {
-        where.executionId = filters.executionId;
+        where.targetExecutionId = filters.executionId;
       }
 
       const rollbacks = await prisma.rollback.findMany({
@@ -317,7 +316,7 @@ export class RollbackService {
         orderBy: { createdAt: 'desc' },
         take: filters?.limit || 50,
         include: {
-          execution: true,
+          targetExecution: true,
         },
       });
 
@@ -336,7 +335,8 @@ export class RollbackService {
       const rollback = await prisma.rollback.findUnique({
         where: { id: rollbackId },
         include: {
-          execution: true,
+          targetExecution: true,
+          compensations: true,
         },
       });
 

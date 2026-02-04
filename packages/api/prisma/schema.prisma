@@ -129,7 +129,10 @@ model Rollback {
   id                String         @id @default(cuid())
   targetExecutionId String         @unique
   targetExecution   Execution      @relation(fields: [targetExecutionId], references: [id])
+  strategy          String         @default("SINGLE") // SINGLE, TREE, CHAIN
   status            RollbackStatus
+  reason            String?
+  blastRadius       Json?          // Blast radius calculation results
   affectedCount     Int            @default(0)
   generatedCount    Int            @default(0)
   executedCount     Int            @default(0)

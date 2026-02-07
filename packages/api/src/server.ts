@@ -16,6 +16,7 @@ import approvalRoutes from './routes/approvals';
 import executionRoutes from './routes/executions';
 import rollbackRoutes from './routes/rollbacks';
 import analyticsRoutes from './routes/analytics';
+import demoRoutes from './routes/demo';
 
 // Load environment variables
 dotenv.config();
@@ -70,6 +71,7 @@ app.use('/api/approvals', authenticate, approvalRoutes);
 app.use('/api/executions', authenticate, executionRoutes);
 app.use('/api/rollbacks', authenticate, rollbackRoutes);
 app.use('/api/analytics', authenticate, analyticsRoutes);
+app.use('/api/demo', authenticate, demoRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

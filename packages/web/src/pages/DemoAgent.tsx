@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import apiClient from '../lib/api';
+import apiClient, { demoApi } from '../lib/api';
 import { getSocket } from '../lib/socket';
 import { Panel } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
@@ -37,22 +37,113 @@ export default function DemoAgent() {
   const [customAmount, setCustomAmount] = useState(100);
   const [customReason, setCustomReason] = useState('Product quality issue');
 
-  useEffect(() => {
-    loadInitialStats();
+  // Track if socket listeners are registered to prevent duplication
+  const listenersRegistered = useRef(false);
 
-    const socket = getSocket();
-    socket.on('execution:new', handleExecutionEvent);
-    socket.on('execution:completed', handleExecutionEvent);
-    socket.on('execution:blocked', handleExecutionEvent);
-    socket.on('execution:failed', handleExecutionEvent);
+  // Debounced activity log update to prevent render storms
+  const updateActivityLog = useMemo(
+    () => {
+      let timeoutId: NodeJS.Timeout;
+      return (newLog: ActivityLog) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          setActivityLog(prev => {
+            // Prevent duplicates
+            if (prev.some(log => log.id === newLog.id)) {
+              return prev;
+            }
+            return [newLog, ...prev].slice(0, 20);
+          });
+        }, 100);
+      };
+    },
+    []
+  );
+
+  // Memoized event handler to prevent recreating on every render
+  const handleExecutionEvent = useCallback((data: any) => {
+    try {
+      // Validate data structure
+      if (!data || typeof data !== 'object') {
+        console.warn('Invalid execution event data:', data);
+        return;
+      }
+
+      // Check required fields
+      if (!data.agentId || !data.tool) {
+        console.warn('Missing required fields in execution event:', data);
+        return;
+      }
+
+      // Only track our demo agent
+      if (data.agentId === 'customer_service_refund_bot') {
+        setExecutionCount(prev => prev + 1);
+
+        if (data.status === 'COMPLETED' || data.status === 'executed') {
+          setSuccessCount(prev => prev + 1);
+        } else if (data.status === 'BLOCKED' || data.status === 'blocked') {
+          setBlockedCount(prev => prev + 1);
+        }
+
+        // Add to activity log with debouncing
+        const newLog: ActivityLog = {
+          id: data.executionId || data.id || `temp-${Date.now()}-${Math.random()}`,
+          timestamp: new Date(),
+          agentId: data.agentId,
+          tool: data.tool,
+          status: data.status || 'UNKNOWN',
+          riskScore: data.riskScore,
+        };
+
+        updateActivityLog(newLog);
+      }
+    } catch (error) {
+      console.error('Error handling execution event:', error);
+    }
+  }, [updateActivityLog]);
+
+  useEffect(() => {
+    // Prevent duplicate listener registration
+    if (listenersRegistered.current) {
+      console.log('Socket listeners already registered, skipping');
+      return;
+    }
+
+    console.log('Registering socket listeners');
+
+    const initializePage = async () => {
+      try {
+        await loadInitialStats();
+
+        const socket = getSocket();
+
+        // Register listeners
+        socket.on('execution:new', handleExecutionEvent);
+        socket.on('execution:completed', handleExecutionEvent);
+        socket.on('execution:blocked', handleExecutionEvent);
+        socket.on('execution:failed', handleExecutionEvent);
+
+        listenersRegistered.current = true;
+      } catch (error) {
+        console.error('Error initializing demo page:', error);
+        toast.error('Failed to load demo page', {
+          description: 'Please refresh the page to try again',
+        });
+      }
+    };
+
+    initializePage();
 
     return () => {
+      console.log('Cleaning up socket listeners');
+      const socket = getSocket();
       socket.off('execution:new', handleExecutionEvent);
       socket.off('execution:completed', handleExecutionEvent);
       socket.off('execution:blocked', handleExecutionEvent);
       socket.off('execution:failed', handleExecutionEvent);
+      listenersRegistered.current = false;
     };
-  }, []);
+  }, [handleExecutionEvent]);
 
   const loadInitialStats = async () => {
     try {
@@ -79,30 +170,7 @@ export default function DemoAgent() {
     }
   };
 
-  const handleExecutionEvent = (data: any) => {
-    // Only track our demo agent
-    if (data.agentId === 'customer_service_refund_bot') {
-      setExecutionCount(prev => prev + 1);
-
-      if (data.status === 'COMPLETED' || data.status === 'executed') {
-        setSuccessCount(prev => prev + 1);
-      } else if (data.status === 'BLOCKED' || data.status === 'blocked') {
-        setBlockedCount(prev => prev + 1);
-      }
-
-      // Add to activity log
-      const newLog: ActivityLog = {
-        id: data.executionId || Math.random().toString(36).substr(2, 9),
-        timestamp: new Date(),
-        agentId: data.agentId,
-        tool: data.tool,
-        status: data.status,
-        riskScore: data.riskScore,
-      };
-
-      setActivityLog(prev => [newLog, ...prev].slice(0, 20));
-    }
-  };
+  // Remove old handler - now defined above in useEffect
 
   const runScenario = async (scenarioName: string, amount: number, reason?: string) => {
     toast.info('Triggering Scenario', {
@@ -110,29 +178,39 @@ export default function DemoAgent() {
     });
 
     try {
-      // Since we can't directly control the agent from UI, we'll just show a message
-      // In a real implementation, this would send a command to the agent process
-      toast.warning('Manual Execution Required', {
-        description: `Run: npm start scenario "${scenarioName}" in packages/demo-agent`,
-        duration: 10000,
+      await demoApi.scenario(scenarioName);
+      toast.success('Scenario Started', {
+        description: `${scenarioName} is now executing. Watch the activity feed for updates.`,
       });
     } catch (error) {
       console.error('Error running scenario:', error);
-      toast.error('Failed to run scenario');
+      toast.error('Failed to run scenario', {
+        description: 'Please check the API server logs',
+      });
     }
   };
 
-  const toggleAgent = () => {
-    if (agentRunning) {
-      toast.info('Agent Control', {
-        description: 'To stop: Press Ctrl+C in the agent terminal',
-      });
-    } else {
-      toast.info('Agent Control', {
-        description: 'To start: Run npm start continuous in packages/demo-agent',
+  const toggleAgent = async () => {
+    try {
+      if (agentRunning) {
+        await demoApi.stop();
+        setAgentRunning(false);
+        toast.success('Agent Stopped', {
+          description: 'The demo agent has been stopped',
+        });
+      } else {
+        await demoApi.start();
+        setAgentRunning(true);
+        toast.success('Agent Started', {
+          description: 'The demo agent is now running in continuous mode',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling agent:', error);
+      toast.error('Failed to toggle agent', {
+        description: 'Please check the API server logs',
       });
     }
-    setAgentRunning(!agentRunning);
   };
 
   const successRate = executionCount > 0 ? ((successCount / executionCount) * 100).toFixed(1) : '0.0';
@@ -250,9 +328,22 @@ export default function DemoAgent() {
 
             <Button
               variant="primary"
-              onClick={() => toast.info('Custom Scenario', {
-                description: `Amount: $${customAmount}, Reason: ${customReason}`,
-              })}
+              onClick={async () => {
+                try {
+                  await demoApi.refund({
+                    orderId: `ord_custom_${Date.now()}`,
+                    amount: customAmount,
+                    reason: customReason,
+                    customerId: `cus_custom_${Date.now()}`,
+                  });
+                  toast.success('Custom Scenario Started', {
+                    description: `Processing refund of $${customAmount}. Watch the activity feed for updates.`,
+                  });
+                } catch (error) {
+                  console.error('Error executing custom scenario:', error);
+                  toast.error('Failed to execute scenario');
+                }
+              }}
             >
               Execute Custom Scenario
             </Button>
@@ -330,12 +421,20 @@ export default function DemoAgent() {
 
             <Button
               variant="primary"
-              onClick={() => toast.info('Full Demo', {
-                description: 'Run: npm start full in packages/demo-agent terminal',
-                duration: 8000,
-              })}
+              onClick={async () => {
+                try {
+                  await demoApi.fullDemo();
+                  toast.success('Full Demo Started', {
+                    description: 'All 7 scenarios will execute in sequence. This will take several minutes.',
+                    duration: 5000,
+                  });
+                } catch (error) {
+                  console.error('Error running full demo:', error);
+                  toast.error('Failed to start full demo');
+                }
+              }}
             >
-              View Full Demo Command
+              Run Full Demo
             </Button>
           </div>
         </Panel>

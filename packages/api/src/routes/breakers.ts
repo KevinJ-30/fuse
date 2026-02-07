@@ -37,7 +37,7 @@ router.get('/counts', async (req: Request, res: Response) => {
 // GET /api/breakers/:id - Get single breaker
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const breaker = await breakerService.getBreaker(id);
 
     if (!breaker) {
@@ -102,7 +102,7 @@ router.post('/', async (req: Request, res: Response) => {
 // PATCH /api/breakers/:id - Toggle breaker status
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status } = req.body;
 
     // Validate status
@@ -141,7 +141,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 // DELETE /api/breakers/:id - Delete breaker
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     await breakerService.deleteBreaker(id);
 

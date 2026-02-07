@@ -1,0 +1,252 @@
+.demo-control-container {
+  max-width: 100%;
+  height: 100%;
+  padding: var(--s-6);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-control-header {
+  margin-bottom: var(--s-5);
+}
+
+.demo-control-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: var(--s-2);
+}
+
+.demo-control-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+  flex: 1;
+  min-height: 0;
+}
+
+/* Customer Portal Section */
+.customer-portal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-height: 0;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  padding: var(--s-2) var(--s-3);
+  background: rgba(234, 240, 255, 0.05);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--brand);
+}
+
+.customer-iframe {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: var(--r-lg);
+  background: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  min-height: 600px;
+}
+
+/* Admin Dashboard Section */
+.admin-dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Metrics Panel */
+.metrics-panel {
+  flex-shrink: 0;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+.metric-card {
+  text-align: center;
+  padding: var(--s-3);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--r-md);
+}
+
+.metric-value {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.metric-value.success {
+  color: var(--ok);
+}
+
+.metric-value.danger {
+  color: var(--danger);
+}
+
+.metric-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--s-2);
+}
+
+/* Activity Panel */
+.activity-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-panel h3 {
+  margin-bottom: var(--s-4);
+}
+
+.activity-empty {
+  text-align: center;
+  padding: var(--s-6);
+  color: var(--muted);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  background: rgba(234, 240, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.activity-item:hover {
+  border-color: var(--brand);
+  background: rgba(220, 38, 38, 0.05);
+  transform: translateX(4px);
+}
+
+.activity-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 70px;
+}
+
+.activity-details {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 1;
+}
+
+.activity-tool {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.activity-risk {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 70px;
+  text-align: right;
+}
+
+/* Quick Actions Panel */
+.quick-actions-panel {
+  flex-shrink: 0;
+}
+
+.quick-actions-panel h3 {
+  margin-bottom: var(--s-3);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-2);
+}
+
+.quick-action-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s-3);
+  background: rgba(234, 240, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-action-btn:hover {
+  border-color: var(--brand);
+  background: rgba(220, 38, 38, 0.1);
+  transform: translateX(4px);
+}
+
+.quick-action-btn span:last-child {
+  color: var(--brand);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .demo-control-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .customer-iframe {
+    min-height: 500px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-iframe {
+    min-height: 400px;
+  }
+}

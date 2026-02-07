@@ -29,7 +29,7 @@ router.get('/', async (req: Request, res: Response) => {
 // GET /api/policies/:id - Get policy by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const policy = await policyService.getPolicy(id);
 
@@ -96,7 +96,7 @@ router.post('/', async (req: Request, res: Response) => {
 // PUT /api/policies/:id - Update policy
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, tool, condition, action, enabled, priority } = req.body;
 
     const updateData: any = {};
@@ -135,7 +135,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // PATCH /api/policies/:id/toggle - Enable/disable policy
 router.patch('/:id/toggle', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { enabled } = req.body;
 
     if (typeof enabled !== 'boolean') {
@@ -165,7 +165,7 @@ router.patch('/:id/toggle', async (req: Request, res: Response) => {
 // DELETE /api/policies/:id - Delete policy
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     await policyService.deletePolicy(id);
 

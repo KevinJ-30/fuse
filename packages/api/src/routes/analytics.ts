@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { ExecutionStatus, BreakerStatus, RuleSeverity } from '@prisma/client';
+import { ExecutionStatus, BreakerStatus, RuleSeverity, Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import logger from '../utils/logger';
 
@@ -87,7 +87,7 @@ router.get('/dashboard', async (req: Request, res: Response) => {
     const executionsWithDetection = await prisma.execution.findMany({
       where: {
         createdAt: { gte: since },
-        detectionFlags: { not: null },
+        detectionFlags: { not: Prisma.DbNull },
       },
       select: { detectionFlags: true },
     });

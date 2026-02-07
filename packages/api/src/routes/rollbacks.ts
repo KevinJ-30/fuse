@@ -74,7 +74,7 @@ router.get('/stats', async (req: Request, res: Response) => {
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const rollback = await rollbackService.getRollbackDetails(id);
 
     if (!rollback) {

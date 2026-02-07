@@ -10,6 +10,8 @@ import ApprovalQueueNew from './pages/ApprovalQueueNew';
 import RollbacksNew from './pages/RollbacksNew';
 import RollbackDetailNew from './pages/RollbackDetailNew';
 import DemoAgent from './pages/DemoAgent';
+import DemoControl from './pages/DemoControl';
+import CustomerRefundPortal from './pages/CustomerRefundPortal';
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardNew />} />
               <Route path="/demo" element={<DemoAgent />} />
+              <Route path="/demo-control" element={<DemoControl />} />
+              <Route path="/customer-portal" element={<CustomerRefundPortal />} />
               <Route path="/executions" element={<ExecutionGraphNew />} />
               <Route path="/breakers" element={<EmergencyStopsNew />} />
               <Route path="/policies" element={<PoliciesNew />} />

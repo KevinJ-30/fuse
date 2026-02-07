@@ -54,7 +54,7 @@ router.get('/stats/:timeRange', async (req: Request, res: Response) => {
 // GET /api/executions/:id/tree - Get execution tree
 router.get('/:id/tree', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const tree = await executionGraphService.getExecutionTree(id);
 
     if (!tree) {
@@ -77,7 +77,7 @@ router.get('/:id/tree', async (req: Request, res: Response) => {
 // GET /api/executions/:id - Get execution details
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const execution = await proxyService.getExecution(id);
 
     if (!execution) {

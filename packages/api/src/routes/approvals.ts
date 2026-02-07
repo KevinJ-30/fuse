@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { ApprovalStatus } from '@prisma/client';
 import prisma from '../lib/prisma';
 import proxyService from '../services/proxy.service';
 import logger from '../utils/logger';
@@ -13,7 +14,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const approvals = await prisma.approvalRequest.findMany({
       where: {
-        status: status as string,
+        status: status as ApprovalStatus,
       },
       include: {
         execution: true,
@@ -37,7 +38,7 @@ router.get('/', async (req: Request, res: Response) => {
 // GET /api/approvals/:id - Get approval details
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const approval = await prisma.approvalRequest.findUnique({
       where: { id },
@@ -66,7 +67,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/approvals/:id/approve - Approve and execute
 router.post('/:id/approve', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { modifiedInput, reviewedBy, comments } = req.body;
 
     // Get approval request
@@ -159,7 +160,7 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
 // POST /api/approvals/:id/deny - Deny execution
 router.post('/:id/deny', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { reviewedBy, comments } = req.body;
 
     // Get approval request

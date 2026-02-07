@@ -18,7 +18,7 @@ const navigation = [
   },
   {
     name: 'Live Demo',
-    href: '/demo',
+    href: '/demo-control',
     icon: (
       <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

@@ -1,0 +1,77 @@
+.execution-node {
+  background: var(--surface-1);
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  min-width: 220px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.execution-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  border-color: var(--brand);
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.node-tool {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.node-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.node-risk {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.node-handle {
+  width: 8px;
+  height: 8px;
+  background: var(--brand);
+  border: 2px solid var(--surface-1);
+}
+
+.node-handle:hover {
+  background: var(--ok);
+}
+
+/* ReactFlow overrides */
+.react-flow__node {
+  z-index: 1;
+}
+
+.react-flow__node.selected .execution-node {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}

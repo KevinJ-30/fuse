@@ -24,6 +24,7 @@ model Execution {
   previousState   Json?       // Captured before execution for rollback capability
   riskScore       Float?
   detectionFlags  Json?       // Full detection result including layer outputs
+  metadata        Json?       // Additional metadata like compensation info
   startedAt       DateTime
   completedAt     DateTime?
   createdAt       DateTime    @default(now())
@@ -150,9 +151,12 @@ model Rollback {
 
 enum RollbackStatus {
   PENDING
+  PENDING_APPROVAL
   IN_PROGRESS
   COMPLETED
+  PARTIAL
   FAILED
+  DRY_RUN
 }
 
 // Individual compensation actions within a rollback

@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Badge } from '../ui/Badge';
 import './ExecutionNode.css';
 
 export interface ExecutionNodeData {
@@ -12,44 +11,65 @@ export interface ExecutionNodeData {
   onClick?: () => void;
 }
 
-function ExecutionNode({ data }: NodeProps<ExecutionNodeData>) {
-  const getStatusColor = (status: string) => {
-    const statusUpper = status.toUpperCase();
-    if (statusUpper === 'COMPLETED' || statusUpper === 'EXECUTED') return '#36d399';
-    if (statusUpper === 'PENDING' || statusUpper === 'AWAITING_APPROVAL' || statusUpper === 'RUNNING') return '#fbbd23';
-    if (statusUpper === 'BLOCKED' || statusUpper === 'FAILED') return '#dc2626';
-    return '#6b7280';
-  };
+function getRiskLevel(score: number): string {
+  if (score >= 0.95) return 'critical';
+  if (score >= 0.6) return 'high';
+  if (score >= 0.3) return 'medium';
+  return 'low';
+}
 
-  const getStatusVariant = (status: string): 'success' | 'warning' | 'danger' | 'default' => {
-    const statusUpper = status.toUpperCase();
-    if (statusUpper === 'COMPLETED' || statusUpper === 'EXECUTED') return 'success';
-    if (statusUpper === 'PENDING' || statusUpper === 'AWAITING_APPROVAL' || statusUpper === 'RUNNING') return 'warning';
-    if (statusUpper === 'BLOCKED' || statusUpper === 'FAILED') return 'danger';
-    return 'default';
-  };
+function getStatusClass(status: string): string {
+  const s = status.toUpperCase();
+  if (s === 'COMPLETED' || s === 'EXECUTED') return 'completed';
+  if (s === 'FAILED') return 'failed';
+  if (s === 'BLOCKED') return 'blocked';
+  if (s === 'PENDING') return 'pending';
+  if (s === 'EXECUTING') return 'executing';
+  if (s === 'AWAITING_APPROVAL') return 'awaiting_approval';
+  if (s === 'ROLLED_BACK') return 'rolled_back';
+  return 'pending';
+}
+
+function getNodeBorderClass(status: string): string {
+  const s = status.toUpperCase();
+  if (s === 'COMPLETED' || s === 'EXECUTED') return 'status-completed';
+  if (s === 'FAILED' || s === 'BLOCKED') return 'status-failed';
+  if (s === 'PENDING' || s === 'AWAITING_APPROVAL') return 'status-pending';
+  if (s === 'EXECUTING') return 'status-executing';
+  if (s === 'ROLLED_BACK') return 'status-rolled-back';
+  return '';
+}
+
+function ExecutionNodeComponent({ data }: NodeProps<ExecutionNodeData>) {
+  const statusClass = getStatusClass(data.status);
+  const borderClass = getNodeBorderClass(data.status);
 
   return (
     <>
       <Handle type="target" position={Position.Top} className="node-handle" />
       <div
-        className="execution-node"
-        style={{ borderColor: getStatusColor(data.status) }}
+        className={`execution-node ${borderClass}`}
         onClick={data.onClick}
       >
         <div className="node-header">
-          <Badge variant="brand" size="sm">{data.agentId}</Badge>
-          <Badge variant={getStatusVariant(data.status)} size="sm">{data.status}</Badge>
+          <span className="node-agent-id" title={data.agentId}>
+            {data.agentId}
+          </span>
+          <span className={`node-status-badge ${statusClass}`}>
+            {data.status.replace(/_/g, ' ')}
+          </span>
         </div>
-        <div className="node-tool">{data.tool}</div>
+        
+        <div className="node-tool" title={data.tool}>{data.tool}</div>
+        
         <div className="node-footer">
-          <div className="node-time">
+          <span className="node-time">
             {new Date(data.createdAt).toLocaleTimeString()}
-          </div>
-          {data.riskScore !== undefined && (
-            <div className="node-risk">
-              Risk: {data.riskScore.toFixed(2)}
-            </div>
+          </span>
+          {data.riskScore !== undefined && data.riskScore !== null && (
+            <span className={`node-risk risk-${getRiskLevel(data.riskScore)}`}>
+              {data.riskScore.toFixed(2)}
+            </span>
           )}
         </div>
       </div>
@@ -58,4 +78,4 @@ function ExecutionNode({ data }: NodeProps<ExecutionNodeData>) {
   );
 }
 
-export default memo(ExecutionNode);
+export default memo(ExecutionNodeComponent);

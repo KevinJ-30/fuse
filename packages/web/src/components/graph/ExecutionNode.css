@@ -1,34 +1,119 @@
+/* Execution Graph Node - Apple Design System */
+
 .execution-node {
-  background: var(--surface-1);
-  border: 2px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px;
-  min-width: 220px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
+  background: var(--bg-layer-1, #0a0a0a);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 240px;
+  max-width: 280px;
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .execution-node:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
-  border-color: var(--brand);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    0 16px 48px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.execution-node.status-completed {
+  border-left: 3px solid #30d158;
+}
+
+.execution-node.status-failed,
+.execution-node.status-blocked {
+  border-left: 3px solid #ff453a;
+}
+
+.execution-node.status-pending,
+.execution-node.status-awaiting {
+  border-left: 3px solid #ff9f0a;
+}
+
+.execution-node.status-executing {
+  border-left: 3px solid #0071e3;
+}
+
+.execution-node.status-rolled-back {
+  border-left: 3px solid #bf5af2;
 }
 
 .node-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   gap: 8px;
 }
 
+.node-agent-id {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1a6;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 6px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.node-status-badge.completed {
+  background: rgba(48, 209, 88, 0.15);
+  color: #30d158;
+}
+
+.node-status-badge.failed,
+.node-status-badge.blocked {
+  background: rgba(255, 69, 58, 0.15);
+  color: #ff453a;
+}
+
+.node-status-badge.pending,
+.node-status-badge.awaiting_approval {
+  background: rgba(255, 159, 10, 0.15);
+  color: #ff9f0a;
+}
+
+.node-status-badge.executing {
+  background: rgba(0, 113, 227, 0.15);
+  color: #0071e3;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.node-status-badge.rolled_back {
+  background: rgba(191, 90, 242, 0.15);
+  color: #bf5af2;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .node-tool {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
-  margin-bottom: 8px;
+  color: #f5f5f7;
+  margin-bottom: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -39,31 +124,54 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .node-time {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: var(--muted);
+  color: #6e6e73;
 }
 
 .node-risk {
   font-size: 10px;
-  color: var(--muted);
   font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
+.node-risk.risk-low {
+  color: #30d158;
+  background: rgba(48, 209, 88, 0.1);
+}
+
+.node-risk.risk-medium {
+  color: #ff9f0a;
+  background: rgba(255, 159, 10, 0.1);
+}
+
+.node-risk.risk-high {
+  color: #ff453a;
+  background: rgba(255, 69, 58, 0.1);
+}
+
+.node-risk.risk-critical {
+  color: #ff453a;
+  background: rgba(255, 69, 58, 0.15);
+}
+
+/* ReactFlow Handles */
 .node-handle {
   width: 8px;
   height: 8px;
-  background: var(--brand);
-  border: 2px solid var(--surface-1);
+  background: #0071e3;
+  border: 2px solid #0a0a0a;
+  transition: background 0.15s ease;
 }
 
 .node-handle:hover {
-  background: var(--ok);
+  background: #30d158;
 }
 
 /* ReactFlow overrides */
@@ -72,6 +180,6 @@
 }
 
 .react-flow__node.selected .execution-node {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.25);
 }
